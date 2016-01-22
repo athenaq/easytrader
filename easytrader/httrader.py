@@ -220,9 +220,10 @@ class HTTrader(WebTrader):
         )
 
     def create_basic_params(self):
-        raw_name = self.account_config['userName']
-        use_index_start = 1
-        user_name = raw_name[use_index_start:] if raw_name.startswith('0') else raw_name
+        # raw_name = self.account_config['userName']
+        # use_index_start = 1
+        # user_name = raw_name[use_index_start:] if raw_name.startswith('0') else raw_name
+        user_name = self.account_config['userName']
         basic_params = OrderedDict(
             uid=self.__uid,
             version=1,
@@ -258,10 +259,12 @@ class HTTrader(WebTrader):
         filter_return = filter_empty_list.replace('\n', '')
         log.debug('response data: %s' % filter_return)
         response_data = json.loads(filter_return)
-        if response_data['cssweb_code'] == 'error' or response_data['item'] is None:
-            return response_data
-        return_data = self.format_response_data_type(response_data['item'])
-        log.debug('response data: %s' % return_data)
+        return_data = {}
+        try:
+            return_data = self.format_response_data_type(response_data['item'])
+            log.debug('response data: %s' % return_data)
+        except:
+            pass
         return return_data
 
     def fix_error_data(self, data):
