@@ -2,7 +2,9 @@
 import time
 import os
 import re
+import random
 from threading import Thread
+import logging
 from . import helpers
 
 
@@ -18,6 +20,7 @@ class WebTrader:
         self.trade_prefix = self.config['prefix']
         self.heart_active = True
         self.heart_thread = Thread(target=self.send_heartbeat, daemon=True)
+        self.logger = logging.getLogger()
 
     def read_config(self, path):
         self.account_config = helpers.file2dict(path)
@@ -49,13 +52,27 @@ class WebTrader:
         while True:
             if self.heart_active:
                 try:
-                    response = self.get_balance()
+                    response = self.random_query_account()
                 except:
                     pass
                 self.check_account_live(response)
                 time.sleep(10)
             else:
                 time.sleep(1)
+
+    def random_query_account(self):
+        """随机查询账户信息"""
+        rInt = random.randint(0, 100)
+        if rInt % 2 == 0:
+            self.logger.debug("random query balance")
+            response = self.get_position()
+        elif rInt % 3 == 0:
+            self.logger.debug("random query position")
+            response = self.get_entrust()
+        else:
+            self.logger.debug("random query entrust")
+            response = self.get_balance()
+        return response
 
     def check_account_live(self, response):
         pass
