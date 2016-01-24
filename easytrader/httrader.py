@@ -119,7 +119,8 @@ class HTTrader(WebTrader):
         trade_info_response = self.s.get(self.config['trade_info_page'])
 
         # 查找登录信息
-        search_result = re.search(r'var data = "([/=\w\+]+)"', trade_info_response.text)
+        search_result = re.search(
+            r'var data = "([/=\w\+]+)"', trade_info_response.text)
         if not search_result:
             return False
 
@@ -198,13 +199,13 @@ class HTTrader(WebTrader):
     def __trade(self, stock_code, price, entrust_prop, other):
         need_info = self.__get_trade_need_info(stock_code)
         return self.do(dict(
-                other,
-                stock_account=need_info['stock_account'],  # '沪深帐号'
-                exchange_type=need_info['exchange_type'],  # '沪市1 深市2'
-                entrust_prop=entrust_prop,  # 委托方式
-                stock_code='{:0>6}'.format(stock_code),  # 股票代码, 右对齐宽为6左侧填充0
-                entrust_price=price
-            ))
+            other,
+            stock_account=need_info['stock_account'],  # '沪深帐号'
+            exchange_type=need_info['exchange_type'],  # '沪市1 深市2'
+            entrust_prop=entrust_prop,  # 委托方式
+            stock_code='{:0>6}'.format(stock_code),  # 股票代码, 右对齐宽为6左侧填充0
+            entrust_price=price
+        ))
 
     def __get_trade_need_info(self, stock_code):
         """获取股票对应的证券市场和帐号"""
@@ -248,7 +249,8 @@ class HTTrader(WebTrader):
         unquote_str = urllib.parse.unquote(params_str)
         log.debug('request params: %s' % unquote_str)
         b64params = base64.b64encode(unquote_str.encode()).decode()
-        r = self.s.get('{prefix}/?{b64params}'.format(prefix=self.trade_prefix, b64params=b64params), headers=headers)
+        r = self.s.get(
+            '{prefix}/?{b64params}'.format(prefix=self.trade_prefix, b64params=b64params), headers=headers)
         return r.content
 
     def format_response_data(self, data):
@@ -268,5 +270,10 @@ class HTTrader(WebTrader):
         return return_data
 
     def fix_error_data(self, data):
-        last_no_use_info_index = -1
-        return data if hasattr(data, 'get') else data[:last_no_use_info_index]
+        try:
+            if not hasattr(data, 'get'):
+                last_no_use_info_index = -1
+                data = data[:last_no_use_info_index]
+        except:
+            pass
+        return data
