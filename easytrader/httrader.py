@@ -86,7 +86,7 @@ class HTTrader(WebTrader):
             f.write(verify_code_response.content)
 
         verify_code = helpers.recognize_verify_code(image_path)
-        log.debug('verify code detect result: %s' % verify_code)
+        self.logger.debug('verify code detect result: %s' % verify_code)
         os.remove(image_path)
 
         ht_verify_code_length = 4
@@ -107,7 +107,7 @@ class HTTrader(WebTrader):
         )
         params.update(self.config['login'])
 
-        log.debug('login params: %s' % params)
+        self.logger.debug('login params: %s' % params)
         login_api_response = self.s.post(self.config['login_api'], params)
 
         if login_api_response.text.find('欢迎您') == -1:
@@ -127,12 +127,12 @@ class HTTrader(WebTrader):
         need_data_index = 0
         need_data = search_result.groups()[need_data_index]
         bytes_data = base64.b64decode(need_data)
-        log.debug('trade info bytes data: ', bytes_data)
+        self.logger.debug('trade info bytes data: ', bytes_data)
         try:
             str_data = bytes_data.decode('gbk')
         except UnicodeDecodeError:
             str_data = bytes_data.decode('gb2312', errors='ignore')
-        log.debug('trade info: %s' % str_data)
+        self.logger.debug('trade info: %s' % str_data)
         json_data = json.loads(str_data)
         return json_data
 
@@ -144,11 +144,11 @@ class HTTrader(WebTrader):
             if account_info['stock_account'].startswith('A'):
                 self.__sh_exchange_type = account_info['exchange_type']
                 self.__sh_stock_account = account_info['stock_account']
-                log.debug('sh stock account %s' % self.__sh_stock_account)
+                self.logger.debug('sh stock account %s' % self.__sh_stock_account)
             elif account_info['stock_account'].isdigit():
                 self.__sz_exchange_type = account_info['exchange_type']
                 self.__sz_stock_account = account_info['stock_account']
-                log.debug('sz stock account %s' % self.__sz_stock_account)
+                self.logger.debug('sz stock account %s' % self.__sz_stock_account)
 
         self.__fund_account = json_data['fund_account']
         self.__client_risklevel = json_data['branch_no']
@@ -247,7 +247,7 @@ class HTTrader(WebTrader):
         params.move_to_end('ram')
         params_str = urllib.parse.urlencode(params)
         unquote_str = urllib.parse.unquote(params_str)
-        log.debug('request params: %s' % unquote_str)
+        self.logger.debug('request params: %s' % unquote_str)
         b64params = base64.b64encode(unquote_str.encode()).decode()
         r = self.s.get(
             '{prefix}/?{b64params}'.format(prefix=self.trade_prefix, b64params=b64params), headers=headers)
@@ -256,15 +256,15 @@ class HTTrader(WebTrader):
     def format_response_data(self, data):
         bytes_str = base64.b64decode(data)
         gbk_str = bytes_str.decode('gbk')
-        log.debug('response data before format: %s' % gbk_str)
+        self.logger.debug('response data before format: %s' % gbk_str)
         filter_empty_list = gbk_str.replace('[]', 'null')
         filter_return = filter_empty_list.replace('\n', '')
-        log.debug('response data: %s' % filter_return)
+        self.logger.debug('response data: %s' % filter_return)
         response_data = json.loads(filter_return)
         return_data = {}
         try:
             return_data = self.format_response_data_type(response_data['item'])
-            log.debug('response data: %s' % return_data)
+            self.logger.debug('response data: %s' % return_data)
         except:
             pass
         return return_data
