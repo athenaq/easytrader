@@ -51,12 +51,13 @@ class WebTrader:
         """每隔10秒查询指定接口保持 token 的有效性"""
         while True:
             if self.heart_active:
+                response = None
                 try:
                     response = self.random_query_account()
                 except:
                     pass
                 self.check_account_live(response)
-                time.sleep(10)
+                time.sleep(random.randint(10, 30))
             else:
                 time.sleep(1)
 
@@ -64,14 +65,15 @@ class WebTrader:
         """随机查询账户信息"""
         rInt = random.randint(0, 100)
         if rInt % 2 == 0:
-            self.logger.debug("random query balance")
             response = self.get_position()
+            self.logger.info('\n' + self.format_position(response))
         elif rInt % 3 == 0:
-            self.logger.debug("random query position")
             response = self.get_entrust()
+            self.logger.info('\n' + self.format_entrust(response))
         else:
-            self.logger.debug("random query entrust")
             response = self.get_balance()
+            self.logger.info('\n' + self.format_balance(response))
+        self.format_balance(response)
         return response
 
     def check_account_live(self, response):
@@ -166,3 +168,26 @@ class WebTrader:
 
     def check_login_status(self, return_data):
         pass
+
+    def format_balance(self, balance):
+        balance = balance[0]
+        fmt = ''
+        for key in list(balance.keys()):
+            fmt += '%s\t%s\n' % (key, balance[key])
+        return fmt
+
+    def format_position(self, position):
+        fmt = ''
+        for p in position:
+            for k in list(p.keys()):
+                fmt += (str(p[k]) + '\t')
+            fmt += '\n'
+        return fmt
+
+    def format_entrust(self, entrust):
+        fmt = ''
+        for e in entrust:
+            for k in list(e.keys()):
+                fmt += (str(e[k]) + '\t')
+            fmt += '\n'
+        return fmt
